@@ -44,28 +44,9 @@ class MariaDB {
     $this->connection = null;
   }
 
-  protected function checkIfConnected() {
-    if ($this->connection) {
-      return true;
-    } else {
-      return false;
-    }
-  }
-
   protected function performQuery($query) {
-    $result = $this->connection->query($query);
-    return $result;
+    return $this->connection->query($query);
   }
-
-  protected function getQueryResult($query) {
-    if ($this->checkIfConnected()) {
-      return $this->performQuery($query);
-    } else {
-      throw new Exception("You are not connected to database!");
-      return false;
-    }
-  }
-
 
   // SELECT isbn, title, 
   // CONCAT(name_first, ' ', name_last) AS author
@@ -89,13 +70,12 @@ class MariaDB {
         ($order_direction ? " $order_direction " : null );
         ($limit ? "LIMIT $limit" : null);
 
-    $result;
-    try {
-      return $this->getQueryResult($query);
-    } catch (Exception $e) {
-      throw new Exception("An error occured: $e");
-      return false;
-    }
+      $result = $this->performQuery($query);
+      
+      if ($result === false) {
+        throw new Exception("Can't perform query");
+      }
+      return $result;
   }
 
 
@@ -107,12 +87,13 @@ class MariaDB {
     $values
   ) {
     $query = "INSERT INTO $table ($columns) VALUES ($values)";
-    try {
-      return $this->getQueryResult($query);
-    } catch (Exception $e) {
-      throw new Exception("An error occured: $e");
-      return false;
+    
+    $result = $this->performQuery($query);
+    
+    if ($result === false) {
+      throw new Exception("Can't perform query");
     }
+    return $result;
   }
 
   // function __destruct() {}
