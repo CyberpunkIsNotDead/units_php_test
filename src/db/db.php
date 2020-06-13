@@ -105,9 +105,30 @@ class MariaDB {
   // [ORDER BY expression [ ASC | DESC ]]
   // [LIMIT number_rows];
 
-  public function update($table, $columns, $values, $where=null) {
-    $set_string = implode(", ", $columns);
-    return $set_string;
+  public function updateById($table, $columns, $values, $id) {
+    $data_str_templates = array();
+
+    foreach($columns as $column) {
+      $entry_str = "$column = ?";
+      array_push($data_str_templates, $entry_str);
+    }
+
+    $set_str_template = implode(", ", $data_str_templates);
+
+    $statement = "UPDATE $table SET $set_str_template WHERE id = ?";
+
+    $prepared = $this->connection->prepare($statement);
+
+
+    // $stmt = $mysqli->prepare("SELECT * FROM myTable WHERE name = ? AND age = ?");
+    // $stmt->bind_param("si", $_POST['name'], $_POST['age']);
+    // $stmt->execute();
+    // //fetching result would go here, but will be covered later
+    // $stmt->close();
+
+    // $prepared = $this->connection->prepare($statement)
+
+    return $statement;
     // $query = "UPDATE $table SET ";
   }
 
