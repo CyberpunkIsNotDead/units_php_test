@@ -96,6 +96,21 @@ class MariaDB {
     return $result;
   }
 
+
+  // UPDATE table
+  // SET column1 = expression1,
+  //     column2 = expression2,
+  //     ...
+  // [WHERE conditions]
+  // [ORDER BY expression [ ASC | DESC ]]
+  // [LIMIT number_rows];
+
+  public function update($table, $columns, $values, $where=null) {
+    $set_string = implode(", ", $columns);
+    return $set_string;
+    // $query = "UPDATE $table SET ";
+  }
+
   // function __destruct() {}
 }
 
