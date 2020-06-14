@@ -8,30 +8,19 @@ $db->connect();
 echo "<br>";
 echo "<br>";
 
-// trim and validate user input
 $columns = array(
-  "userinfo"
+  "userinfo" => "s",
 );
 
 $values = array(
-  "Lorem ipsum dolor sit amet' select * from users"
+  "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse ac urna non est scelerisque pharetra. Vivamus ullamcorper rhoncus tincidunt. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Pellentesque quis ante et ex mattis vestibulum eget sit amet nisi. Orci varius natoque penatibus et magnis dis. ",
 );
 
-$data_arr = array(
-  "userinfo" => array(
-    "s" => "Lorem ipsum dolor sit amet' select * from users"
-  ),
-  "age" => array(
-    "i" => 24
-  ) 
-);
-
-echo $db->updateById(
-  "users",
-  $columns,
-  $values,
-  1
-);
+if ($db->updateById("users", $columns, $values, 2)) {
+  echo "updated successfully";
+} else {
+  echo "an error occured";
+}
 
 $db->disconnect();
 

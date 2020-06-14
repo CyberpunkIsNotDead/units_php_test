@@ -13,7 +13,8 @@ class MariaDB {
 
   public $connection = null;
   public $error = null;
- 
+
+  
   function __construct() {
     $this->host = DB_HOST;
     $this->port = DB_PORT;
@@ -21,6 +22,7 @@ class MariaDB {
     $this->pass = DB_PASS;
     $this->dbname = DB_NAME;
   }
+
 
   public function connect() {
     $connection = new mysqli(
@@ -39,31 +41,38 @@ class MariaDB {
     }
   }
 
+
   public function disconnect() {
     $this->connection->close();
     $this->connection = null;
   }
 
+
   protected function performQuery($query) {
     return $this->connection->query($query);
   }
 
-  // SELECT isbn, title, 
-  // CONCAT(name_first, ' ', name_last) AS author
-  // FROM books
-  // JOIN authors USING (author_id)
-  // WHERE name_last = 'Dostoevsky'
-  // ORDER BY title ASC
-  // LIMIT 5;
 
-  public function selectFrom(
-    $table,
-    $columns = "*",
-    $where = null,
-    $order_by = null,
-    $order_direction = null,
-    $limit = null
-  ) {
+  protected function execPrepStatement($statement, $types_str, $params) {
+    if (!$prepared = $this->connection->prepare($statement)) {
+      return false;
+    }
+
+    if (!$prepared->bind_param($types_str, ...$params)) {
+      return false;
+    }
+    
+    if (!$prepared->execute()) {
+      return false;
+    }
+
+    $prepared->close();
+    return true;
+  }
+
+
+  public function selectFrom($table, $columns = "*", $where = null,
+  $order_by = null, $order_direction = null, $limit = null) {
       $query = "SELECT $columns FROM $table " .
         ($where ? "WHERE $where " : null) .
         ($order_by ? "ORDER BY $order_by " : null) .
@@ -78,14 +87,8 @@ class MariaDB {
       return $result;
   }
 
-
-  // INSERT INTO person (first_name, last_name) VALUES ('John', 'Doe');
-
-  public function insertInto(
-    $table,
-    $columns,
-    $values
-  ) {
+  
+  public function insertInto($table, $columns, $values) {
     $query = "INSERT INTO $table ($columns) VALUES ($values)";
     
     $result = $this->performQuery($query);
@@ -97,42 +100,28 @@ class MariaDB {
   }
 
 
-  // UPDATE table
-  // SET column1 = expression1,
-  //     column2 = expression2,
-  //     ...
-  // [WHERE conditions]
-  // [ORDER BY expression [ ASC | DESC ]]
-  // [LIMIT number_rows];
-
   public function updateById($table, $columns, $values, $id) {
     $data_str_templates = array();
+    $types_str = "";
 
-    foreach($columns as $column) {
+    foreach($columns as $column => $type) {
       $entry_str = "$column = ?";
       array_push($data_str_templates, $entry_str);
+      $types_str .= $type;
     }
+    array_push($values, $id); // to unpack as params
+    $types_str .= "i"; // for id
 
     $set_str_template = implode(", ", $data_str_templates);
 
     $statement = "UPDATE $table SET $set_str_template WHERE id = ?";
 
-    $prepared = $this->connection->prepare($statement);
+    if (!$this->execPrepStatement($statement, $types_str, $values)) {
+      return false;
+    }
 
-
-    // $stmt = $mysqli->prepare("SELECT * FROM myTable WHERE name = ? AND age = ?");
-    // $stmt->bind_param("si", $_POST['name'], $_POST['age']);
-    // $stmt->execute();
-    // //fetching result would go here, but will be covered later
-    // $stmt->close();
-
-    // $prepared = $this->connection->prepare($statement)
-
-    return $statement;
-    // $query = "UPDATE $table SET ";
+    return true;
   }
-
-  // function __destruct() {}
 }
 
 ?> 
